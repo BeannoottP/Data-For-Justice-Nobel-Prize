@@ -14,7 +14,7 @@ library(WikidataR)
 library(pbmcapply)
 
 # Define constants
-WIKI_URL <- "https://sv.wikipedia.org/wiki/Lista_%C3%B6ver_ledam%C3%B6ter_av_Kungliga_Vetenskapsakademien"
+WIKI_URL <- "https://sv.wikipedia.org/wiki/Lista_%C3%B6ver_ledam%C3%B6ter_av_Kungliga_Vetenskapsakademien" #this is a wikipedia page with a list of RSAS members
 
 # 2. DATA EXTRACTION ----------------------------------------------------------
 # Scrape Wikipedia page for members' details
@@ -75,7 +75,7 @@ qid <- pbmclapply(df$links, PediaURLToQID, mc.cores=23) %>% unlist
 query_function <- function(qs, max_retries = 10) {
   items <- paste0('wd:', qs) %>% paste(collapse=' ')
   query <- sprintf(
-    'SELECT DISTINCT ?qid ?name ?deathDate ?genderLabel ?birthCountryLabel ?nationalityLabel
+    'SELECT DISTINCT ?qid ?name ?deathDate ?genderLabel ?birthCountryLabel ?nationalityLabel ?educationLabel
     WHERE {
       VALUES ?qid {%s}
       OPTIONAL { ?qid rdfs:label ?name. FILTER(LANG(?name) = "en") }
@@ -83,11 +83,13 @@ query_function <- function(qs, max_retries = 10) {
       OPTIONAL { ?qid wdt:P21 ?gender. }
       OPTIONAL { ?qid wdt:P19/wdt:P17 ?birthCountry. }
       OPTIONAL { ?qid wdt:P27 ?nationality. }
+      OPTIONAL { ?qid wdt:P69 ?education. }
       SERVICE wikibase:label { 
         bd:serviceParam wikibase:language "en".
         ?gender rdfs:label ?genderLabel.
         ?birthCountry rdfs:label ?birthCountryLabel.
         ?nationality rdfs:label ?nationalityLabel.
+        ?education rdfs:label ?educationLabel
       }
     }', items)
   
@@ -115,7 +117,8 @@ query_function <- function(qs, max_retries = 10) {
 }
 
 results <- pbmclapply(qid, query_function, mc.cores=23) %>% bind_rows()
-
+resultsBuffer <- results
+#results <- resultsBuffer #for reseting results
 # Process the query results
 results <- results %>%
   mutate(endyear = year(as.Date(deathDate))) %>%
@@ -124,7 +127,8 @@ results <- results %>%
   summarise(
     endyear = min(endyear, na.rm = TRUE),
     birthCountryLabel = paste(unique(birthCountryLabel), collapse = "; "),
-    nationalityLabel = paste(unique(nationalityLabel), collapse = "; ")
+    nationalityLabel = paste(unique(nationalityLabel), collapse = "; "),
+    educationLabel = paste(unique(educationLabel), collapse = "; ")
   ) %>%
   ungroup()
 
@@ -140,7 +144,7 @@ RSAS <- left_join(
     birthcountry = birthCountryLabel,
     nationality = nationalityLabel
   ) %>%
-  relocate(qid, name, startyear, endyear, gender, birthcountry, nationality) %>%
+  relocate(qid, name, startyear, endyear, gender, birthcountry, nationality, educationLabel) %>%
   filter(startyear >= 1820 & startyear <= 1973) %>%
   filter(endyear >= 1901) %>%
   drop_na
