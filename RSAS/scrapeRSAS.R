@@ -75,7 +75,7 @@ qid <- pbmclapply(df$links, PediaURLToQID, mc.cores=23) %>% unlist
 query_function <- function(qs, max_retries = 10) {
   items <- paste0('wd:', qs) %>% paste(collapse=' ')
   query <- sprintf(
-    'SELECT DISTINCT ?qid ?name ?deathDate ?genderLabel ?birthCountryLabel ?nationalityLabel ?educationLabel
+    'SELECT DISTINCT ?qid ?name ?deathDate ?genderLabel ?birthCountryLabel ?nationalityLabel ?educationLabel ?employerLabel
     WHERE {
       VALUES ?qid {%s}
       OPTIONAL { ?qid rdfs:label ?name. FILTER(LANG(?name) = "en") }
@@ -84,12 +84,14 @@ query_function <- function(qs, max_retries = 10) {
       OPTIONAL { ?qid wdt:P19/wdt:P17 ?birthCountry. }
       OPTIONAL { ?qid wdt:P27 ?nationality. }
       OPTIONAL { ?qid wdt:P69 ?education. }
+      OPTIONAL { ?qid wdt:P108 ?employer. }
       SERVICE wikibase:label { 
         bd:serviceParam wikibase:language "en".
         ?gender rdfs:label ?genderLabel.
         ?birthCountry rdfs:label ?birthCountryLabel.
         ?nationality rdfs:label ?nationalityLabel.
-        ?education rdfs:label ?educationLabel
+        ?education rdfs:label ?educationLabel.
+        ?employer rdfs:label ?employerLabel
       }
     }', items)
   
@@ -128,7 +130,8 @@ results <- results %>%
     endyear = min(endyear, na.rm = TRUE),
     birthCountryLabel = paste(unique(birthCountryLabel), collapse = "; "),
     nationalityLabel = paste(unique(nationalityLabel), collapse = "; "),
-    educationLabel = paste(unique(educationLabel), collapse = "; ")
+    educationLabel = paste(unique(educationLabel), collapse = "; "),
+    employerLabel = paste(unique(employerLabel), collapse = "; ")
   ) %>%
   ungroup()
 
@@ -142,9 +145,11 @@ RSAS <- left_join(
   rename(
     gender = genderLabel,
     birthcountry = birthCountryLabel,
-    nationality = nationalityLabel
+    nationality = nationalityLabel,
+    education = educationLabel,
+    employer = employerLabel
   ) %>%
-  relocate(qid, name, startyear, endyear, gender, birthcountry, nationality, educationLabel) %>%
+  relocate(qid, name, startyear, endyear, gender, birthcountry, nationality, education, employer) %>%
   filter(startyear >= 1820 & startyear <= 1973) %>%
   filter(endyear >= 1901) %>%
   drop_na
