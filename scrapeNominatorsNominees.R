@@ -75,12 +75,21 @@ scrape_nomination <- function(url) {
     }
     return(NA)
   }
+  extract_category <- function(text) {
+    pattern <- "Nomination for Nobel Prize in\\s*([^\\n]+)"
+    match <- str_match(text, pattern)
+    if (!is.na(match[2])) {
+      return(trimws(match[2]))
+    }
+    return("Peace")
+  }
   
 
   
   # Extract general fields
   year <- extract_field("Year", raw_text)
   number <- extract_field("Number", raw_text)
+  category <- extract_category(raw_text)
   
   # Extract Nominator fields
   nominator_name <- extract_field("Name", nominator_text)
@@ -93,10 +102,11 @@ scrape_nomination <- function(url) {
   nominator_state <- extract_field("State", nominator_text)
   nominator_country <- extract_field("Country", nominator_text)
   
-  if (grepl("Nominee \\d+", nominee_text)) {
-    print("inside if")
+  
+  #Logical split for multiple Nominees in one page
+  if (grepl("Nominee \\d+", nominee_text)) { #There is more than one nominee
     returnData <- data.frame(
-      Year = numeric(), Number = numeric(),
+      Category = character(), Year = numeric(), Number = numeric(),
       Nominee_Name = character(), Nominee_Gender = character(),
       Nominee_Birth = numeric(), Nominee_Death = numeric(),
       Nominee_Profession = character(), Nominee_University = character(),
@@ -108,9 +118,8 @@ scrape_nomination <- function(url) {
       Nominator_City = character(), Nominator_State = character(), Nominator_Country = character(),
       stringsAsFactors = FALSE)
     nominee_digit <- 1
-    while(grepl("Nominee \\d+", nominee_text)) {
-      print(paste("iteration", nominee_digit))
-      # Extract Nominee fields
+    while(grepl("Nominee \\d+", nominee_text)) { #While there is still info in the text, run this loop 
+      # Extracts first instance of each Nominee fields
       nominee_name <- extract_field("Name", nominee_text)
       nominee_gender <- extract_field("Gender", nominee_text)
       nominee_birth <- extract_field("Year, Birth", nominee_text)
@@ -122,8 +131,9 @@ scrape_nomination <- function(url) {
       nominee_country <- extract_field("Country", nominee_text)
       nominee_motivation <- extract_field("Motivation", nominee_text)
     
+      #Create a new row with each individual nomination
       new_row <- data.frame(
-        Year = year, Number = number,
+        Category = category, Year = year, Number = number,
         Nominee_Name = nominee_name, Nominee_Gender = nominee_gender,
         Nominee_Birth = nominee_birth, Nominee_Death = nominee_death,
         Nominee_Profession = nominee_profession, Nominee_University = nominee_university,
@@ -135,7 +145,8 @@ scrape_nomination <- function(url) {
         Nominator_City = nominator_city, Nominator_State = nominator_state, Nominator_Country = nominator_country,
         stringsAsFactors = FALSE
       )
-    
+      
+      #add this row to 
       returnData <- rbind(returnData, new_row)
       nominee_digit <- nominee_digit + 1
       pattern <- paste0("(?s)Nominee ", nominee_digit, ".*")
@@ -164,7 +175,7 @@ scrape_nomination <- function(url) {
   
   # Return as a data frame
   return(data.frame(
-    Year = year, Number = number,
+    Category = category, Year = year, Number = number,
     Nominee_Name = nominee_name, Nominee_Gender = nominee_gender,
     Nominee_Birth = nominee_birth, Nominee_Death = nominee_death,
     Nominee_Profession = nominee_profession, Nominee_University = nominee_university,
