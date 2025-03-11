@@ -150,7 +150,7 @@ RSAS <- left_join(
     employer = employerLabel
   ) %>%
   relocate(qid, name, startyear, endyear, gender, birthcountry, nationality, education, employer) %>%
-  filter(startyear >= 1820 & startyear <= 1973) %>%
+  filter(startyear >= 1820 & startyear <= 2022) %>%
   filter(endyear >= 1901) %>%
   drop_na
 
