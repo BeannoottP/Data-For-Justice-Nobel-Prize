@@ -118,18 +118,19 @@ scrape_nomination <- function(url) {
       Nominator_City = character(), Nominator_State = character(), Nominator_Country = character(),
       stringsAsFactors = FALSE)
     nominee_digit <- 1
+    nominee_text_just_one_entry <- str_match(nominee_text, "(?s)Nominee \\d+:\\s*(.*?)(?=\\s*Nominee \\d+:|$)")[,2]
     while(grepl("Nominee \\d+", nominee_text)) { #While there is still info in the text, run this loop 
       # Extracts first instance of each Nominee fields
-      nominee_name <- extract_field("Name", nominee_text)
-      nominee_gender <- extract_field("Gender", nominee_text)
-      nominee_birth <- extract_field("Year, Birth", nominee_text)
-      nominee_death <- extract_field("Year, Death", nominee_text)
-      nominee_profession <- extract_field("Profession", nominee_text)
-      nominee_university <- extract_field("University", nominee_text)
-      nominee_city <- extract_field("City", nominee_text)
-      nominee_state <- extract_field("State", nominee_text)
-      nominee_country <- extract_field("Country", nominee_text)
-      nominee_motivation <- extract_field("Motivation", nominee_text)
+      nominee_name <- extract_field("Name", nominee_text_just_one_entry)
+      nominee_gender <- extract_field("Gender", nominee_text_just_one_entry)
+      nominee_birth <- extract_field("Year, Birth", nominee_text_just_one_entry)
+      nominee_death <- extract_field("Year, Death", nominee_text_just_one_entry)
+      nominee_profession <- extract_field("Profession", nominee_text_just_one_entry)
+      nominee_university <- extract_field("University", nominee_text_just_one_entry)
+      nominee_city <- extract_field("City", nominee_text_just_one_entry)
+      nominee_state <- extract_field("State", nominee_text_just_one_entry)
+      nominee_country <- extract_field("Country", nominee_text_just_one_entry)
+      nominee_motivation <- extract_field("Motivation", nominee_text_just_one_entry)
     
       #Create a new row with each individual nomination
       new_row <- data.frame(
@@ -151,7 +152,7 @@ scrape_nomination <- function(url) {
       nominee_digit <- nominee_digit + 1
       pattern <- paste0("(?s)Nominee ", nominee_digit, ".*")
       nominee_text <- str_extract(nominee_text, pattern)
-      print(nominee_text)
+      nominee_text_just_one_entry <- str_match(nominee_text, "(?s)Nominee \\d+:\\s*(.*?)(?=\\s*Nominee \\d+:|$)")[,2]
     }
     
     return(returnData)
