@@ -30,7 +30,8 @@ good.links <- links %>% str_detect('/wiki/')
 bad.links <- links %>% str_detect('&redlink=1')
 
 # Pull names and years from text
-name <- txt %>% str_extract('^.+(?=,)(?<!\\d)')
+#name <- txt %>% str_extract('^.+(?=,)(?<!\\d)')
+name <- txt %>% str_extract('^[^,\\(]+')
 startyear <- txt %>% str_extract('\\d{4}(?=–)') %>% as.numeric
 endyear <- txt %>% str_extract('(?<=–)\\d{4}') %>% as.numeric
 
@@ -54,7 +55,7 @@ df <- df[!is.na(df$startyear),]
 
 # Filter
 df <- df %>%
-  filter(startyear <= 1973)
+  filter(startyear <= 2025)
 
 items <- paste0('wd:',df$qid) %>% paste(collapse=' ')
 
@@ -69,9 +70,16 @@ query <- paste0(
     }'
 )
 
+
+#returned <- raw_returned %>%
+#  mutate(
+#    qid = as.character(qid), 
+#   birthDate = as.Date(birthDate, format="%Y-%m-%d"),
+#    deathDate = as.Date(deathDate, format="%Y-%m-%d")
+#  )
+
 returned <- query %>%
-  query_wikidata(format="smart") %>%
-  as.data.frame
+  query_wikidata()
 
 med <- merge(df, returned, by = "qid", all.x = TRUE)
 
@@ -90,7 +98,7 @@ calculate_cost <- function(endyears) {
   med[is.na(med$endyear), "endyear"] <- round(endyears)
   
   # Calculate committee counts for each year
-  years <- 1901:1973
+  years <- 1901:2025
   committee_counts <- sapply(years, function(y) {
     sum(med$startyear <= y & med$endyear >= y)
   })
@@ -102,7 +110,7 @@ calculate_cost <- function(endyears) {
 
 # Lower and Upper bounds for DEoptim
 lower_bounds <- as.numeric(unknown_endyears$startyear)
-upper_bounds <- ifelse(is.na(unknown_endyears$deathYear), 1973, as.numeric(unknown_endyears$deathYear))
+upper_bounds <- ifelse(is.na(unknown_endyears$deathYear), 2025, as.numeric(unknown_endyears$deathYear))
 
 # Run the DEoptim function
 result <- DEoptim(fn = calculate_cost, lower = lower_bounds, upper = upper_bounds, control = list(trace = 50, itermax = 500, strategy = 3))
@@ -119,7 +127,7 @@ save(med, file='PhysMedCommittee.Rdata')
 # Verify years ------------------------------------------------------------
 year = c()
 seats = c()
-for (i in 1901:1973){
+for (i in 1901:2025){
   year <- c(year,i)
   seats <- c(seats, sum((med$startyear <= i) * (i <= med$endyear), na.rm = TRUE))
 }
