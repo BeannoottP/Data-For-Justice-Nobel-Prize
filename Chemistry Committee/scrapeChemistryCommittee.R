@@ -118,3 +118,5 @@ for (i in 1901:1973) {
   year <- c(year, i)
   seats <- c(seats, sum((chem$startyear <= i) & (i <= chem$endyear), na.rm = TRUE))
 }
+
+
