@@ -11,6 +11,7 @@ library(tidyverse)
 library(rvest)
 library(WikidataR)
 library(lubridate)
+library(pbmcapply)
 
 # --------------------------
 # Extract Storting Members from Wikidata  
@@ -38,7 +39,7 @@ SELECT DISTINCT ?qid ?name ?starttime ?endtime WHERE {
 Storting <- query %>% 
   query_wikidata(format='smart') %>% 
   as.data.frame() %>%
-  filter(starttime > '1901-01-01' & starttime < '1973-12-31')
+  filter(starttime > '1901-01-01')
 
 # Extract years for readability
 Storting$startyear <- year(Storting$starttime)
