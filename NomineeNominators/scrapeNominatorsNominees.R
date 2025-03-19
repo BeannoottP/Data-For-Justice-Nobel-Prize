@@ -105,7 +105,7 @@ scrape_nomination <- function(url) {
   #Logical split for multiple Nominees in one page
   if (grepl("Nominee \\d+", nominee_text)) { #There is more than one nominee
     returnData <- data.frame(
-      Category = character(), Year = numeric(), Number = numeric(),
+      Link = character(), Category = character(), Year = numeric(), Number = numeric(),
       Nominee_Name = character(), Nominee_Gender = character(),
       Nominee_Birth = numeric(), Nominee_Death = numeric(),
       Nominee_Profession = character(), Nominee_University = character(),
@@ -133,7 +133,7 @@ scrape_nomination <- function(url) {
     
       #Create a new row with each individual nomination
       new_row <- data.frame(
-        Category = category, Year = year, Number = number,
+        Link = url, Category = category, Year = year, Number = number,
         Nominee_Name = nominee_name, Nominee_Gender = nominee_gender,
         Nominee_Birth = nominee_birth, Nominee_Death = nominee_death,
         Nominee_Profession = nominee_profession, Nominee_University = nominee_university,
@@ -175,7 +175,7 @@ scrape_nomination <- function(url) {
   
   # Return as a data frame
   return(data.frame(
-    Category = category, Year = year, Number = number,
+    Link = url, Category = category, Year = year, Number = number,
     Nominee_Name = nominee_name, Nominee_Gender = nominee_gender,
     Nominee_Birth = nominee_birth, Nominee_Death = nominee_death,
     Nominee_Profession = nominee_profession, Nominee_University = nominee_university,
@@ -193,5 +193,6 @@ scrape_nomination <- function(url) {
 # Apply in parallel
 detailedData <- pbmclapply(data$link, scrape_nomination, mc.cores = detectCores() - 1) %>%
   bind_rows
+
 
 save(detailedData, file = "nomineeNominatorDetailedData")
