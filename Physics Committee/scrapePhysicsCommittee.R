@@ -13,7 +13,8 @@
 library(tidyverse)
 library(rvest)
 library(pbmcapply)
-
+library(WikidataR)
+library(parallel)
 # Function to handle Wikidata queries with retries
 query_function <- function(qs, max_retries = 10) {
   # Construct the SPARQL query
@@ -40,7 +41,7 @@ query_function <- function(qs, max_retries = 10) {
     tryCatch(
       {
         returned <- query %>%
-          query_wikidata(format="smart") %>%
+          query_wikidata() %>%
           as.data.frame()
         success <- TRUE
       },
@@ -73,8 +74,9 @@ links <- url %>%
   paste0('https://sv.wikipedia.org', .)
 
 # Extract names, start, and end years
-names <- txt %>% str_extract('^.+(?=,)(?<!\\d)')
-startyear <- txt %>% str_extract('\\d{4}(?=–\\d{4})') %>% as.numeric()
+names <- txt %>% str_extract('^(.*?)(?=,|\n)(?<!\\d)|^.+')
+#names <- txt %>% str_extract('^.+(?=,|\n)(?<!\\d)')
+startyear <- txt %>% str_extract('\\d{4}(?=–\\d{4}|–\\?)') %>% as.numeric()
 endyear <- txt %>% str_extract('(?<=\\d{4}–)\\d{4}') %>% as.numeric()
 
 # Convert Wikipedia page links to QIDS
@@ -86,14 +88,14 @@ PediaURL %>%
   html_attr('href') %>%
   str_extract('(?<=https://www.wikidata.org/wiki/Special:EntityPage/).+')
 }
-qid <- pbmclapply(links, PediaURLToQID, mc.cores = 23) %>% unlist()
+qid <- pbmclapply(links, PediaURLToQID, mc.cores = detectCores() - 1) %>% unlist()
 phys <- data.frame(names, startyear, endyear, qid)
 
 # Remove irrelevant years
-phys <- phys[phys$startyear <= 1973,] %>% drop_na(., startyear)
+#phys <- phys[phys$startyear <= 1973,] %>% drop_na(., startyear)
 
 # Aggregate and merge data
-demo <- pbmclapply(phys$qid, query_function, mc.cores=23) %>% bind_rows()
+demo <- pbmclapply(phys$qid, query_function, mc.cores=detectCores() - 1) %>% bind_rows()
 demo_aggregated <- demo %>%
   group_by(qid, genderLabel, birthCountryLabel) %>%
   summarise(nationalityLabel = paste(nationalityLabel, collapse = "; ")) %>%
