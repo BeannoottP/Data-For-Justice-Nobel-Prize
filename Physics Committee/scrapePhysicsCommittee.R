@@ -64,20 +64,25 @@ query_function <- function(qs, max_retries = 10) {
 url <- "https://sv.wikipedia.org/wiki/Vetenskapsakademiens_Nobelkommitt%C3%A9_f%C3%B6r_fysik"
 txt <- url %>% 
   read_html() %>%
-  html_elements(css='ul:nth-child(11) li') %>% 
+  html_elements(css='ul:nth-child(11) li , ul:nth-child(6) li') %>% 
   html_text()
+
 
 links <- url %>% 
   read_html() %>%
-  html_elements(css='ul:nth-child(11) li a') %>%
+  html_elements(css='ul:nth-child(11) li a, ul:nth-child(6) li a') %>%
   html_attr('href') %>%
   paste0('https://sv.wikipedia.org', .)
 
+
+
 # Extract names, start, and end years
 names <- txt %>% str_extract('^(.*?)(?=,|\n)(?<!\\d)|^.+')
-#names <- txt %>% str_extract('^.+(?=,|\n)(?<!\\d)')
 startyear <- txt %>% str_extract('\\d{4}(?=–\\d{4}|–\\?)') %>% as.numeric()
 endyear <- txt %>% str_extract('(?<=\\d{4}–)\\d{4}') %>% as.numeric()
+
+namesCurrent <- txt[1,6] %>% str_extract('^(.*?)(?=,|\n)(?<!\\d)|^.+')
+endyearCurrent[6] <- 2025
 
 # Convert Wikipedia page links to QIDS
 PediaURLToQID <- function(PediaURL) {
