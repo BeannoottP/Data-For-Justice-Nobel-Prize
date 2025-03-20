@@ -62,16 +62,14 @@ query_function <- function(qs, max_retries = 10) {
 # Load the list of names from the Wikipedia page
 url <- "https://sv.wikipedia.org/wiki/Vetenskapsakademiens_Nobelkommitt%C3%A9_f%C3%B6r_kemi"
 
-txt <- url %>% 
-  read_html %>%
-  html_elements(css='h2+ ul li') %>% 
-  html_text
 
 links <- url %>% 
   read_html %>% 
-  html_elements(css='h2+ ul a') %>% 
+  html_elements(css='.mw-heading2+ ul li a , ul:nth-child(6) li a ') %>% 
   html_attr('href') %>%
-  paste0('https://sv.wikipedia.org',.)
+  paste0('https://sv.wikipedia.org', .)
+
+good_links <- str_detect(links, "/wiki/") & !str_detect(links, "&redlink=1")
 
 # Extract names, start, and end years
 names <- txt %>% str_extract('^.+(?=,)(?<!\\d)')
@@ -87,8 +85,11 @@ PediaURLToQID <- function(PediaURL){
     str_extract('(?<=https://www.wikidata.org/wiki/Special:EntityPage/).+')
 }
 
-qid <- pbmclapply(links, PediaURLToQID, mc.cores = 23) %>% unlist
-chem <- data.frame(names, startyear, endyear, qid) 
+
+chem <- data.frame(names, startyear, endyear, links) 
+
+chem$qid[good_links] <- pbmclapply(links[good_links], PediaURLToQID, mc.cores = 10) %>% unlist()
+
 
 # Remove irrelevant years
 chem <- chem[chem$startyear<=1973,] %>% drop_na(.,startyear)
