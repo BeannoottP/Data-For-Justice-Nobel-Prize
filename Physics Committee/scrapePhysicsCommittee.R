@@ -81,8 +81,8 @@ names <- txt %>% str_extract('^(.*?)(?=,|\n)(?<!\\d)|^.+')
 startyear <- txt %>% str_extract('\\d{4}(?=–\\d{4}|–\\?)') %>% as.numeric()
 endyear <- txt %>% str_extract('(?<=\\d{4}–)\\d{4}') %>% as.numeric()
 
-namesCurrent <- txt[1,6] %>% str_extract('^(.*?)(?=,|\n)(?<!\\d)|^.+')
-endyearCurrent[6] <- 2025
+#manually add current years (as of 2025) as end year for current members
+endyear[1:6] <- 2025
 
 # Convert Wikipedia page links to QIDS
 PediaURLToQID <- function(PediaURL) {
