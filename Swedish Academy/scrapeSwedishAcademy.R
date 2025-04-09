@@ -96,7 +96,7 @@ SAmembers <- SAmembers %>%
     endyear = year(as.Date(endDate))
   ) %>%
   select(-startDate, -endDate, -positionLabel) %>%
-  filter(startyear <= 1973 & (endyear >= 1901 | is.na(endyear)))
+  filter((endyear >= 1901 | is.na(endyear)))
 
 # Query additional details for each member of Swedish Academy
 SAdemo <- pbmclapply(SAmembers$qid, query_function, mc.cores=23) %>% bind_rows()
