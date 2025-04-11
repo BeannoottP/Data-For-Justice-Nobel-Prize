@@ -88,6 +88,19 @@ query <- paste0(
 returned <- query %>%
   query_wikidata()
 
+
+#filters out multiple birth/death dates
+returned <- returned %>%
+  group_by(qid) %>%
+  filter(
+    if (n() > 1) {
+      substr(birthDate, 6, 10) != "01-01" & substr(deathDate, 6, 10) != "01-01"
+    } else {
+      TRUE
+    }
+  ) %>%
+  ungroup()
+
 # Merge Wikidata results into `chem`
 chem <- merge(chem, returned, by = "qid", all.x = TRUE)
 
