@@ -15,7 +15,7 @@ url <- "https://sv.wikipedia.org/wiki/Vetenskapsakademiens_Nobelkommitt%C3%A9_f%
 # Extract all members' list items using the confirmed CSS selector
 members <- url %>%
   read_html() %>%
-  html_elements("#mw-content-text ul li")
+  html_elements(".mw-heading2+ ul li , ul:nth-child(6) li")
 
 # Extract names from the list items
 name <- members %>%
@@ -90,7 +90,9 @@ returned <- query %>%
 
 
 #filters out multiple birth/death dates
-returned <- returned %>%
+
+
+parseReturned <- returned %>%
   group_by(qid) %>%
   filter(
     if (n() > 1) {
@@ -101,6 +103,7 @@ returned <- returned %>%
   ) %>%
   ungroup()
 
+#FIX LARS THE FUCKING ASSHIKE Q5718294 HE HAS TWO BIRTHDAYS AND ONE OF THEM IS RIGHT !
 # Merge Wikidata results into `chem`
 chem <- merge(chem, returned, by = "qid", all.x = TRUE)
 
