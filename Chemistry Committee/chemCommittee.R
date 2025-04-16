@@ -90,8 +90,6 @@ returned <- query %>%
 
 
 #filters out multiple birth/death dates
-
-
 parseReturned <- returned %>%
   group_by(qid) %>%
   filter(
@@ -103,9 +101,14 @@ parseReturned <- returned %>%
   ) %>%
   ungroup()
 
-#FIX LARS THE FUCKING ASSHIKE Q5718294 HE HAS TWO BIRTHDAYS AND ONE OF THEM IS RIGHT !
+#Hardfix for Lars, who has two birthdays on Wikidata
+duplicateIndex <- which(parseReturned$qid == "Q5718294")[1]
+if (!is.na(duplicateIndex)) {
+  parseReturned <- parseReturned[-duplicateIndex, ]
+}
+
 # Merge Wikidata results into `chem`
-chem <- merge(chem, returned, by = "qid", all.x = TRUE)
+chem <- merge(chem, parseReturned, by = "qid", all.x = TRUE)
 
 # Convert dates to numeric year
 chem$deathYear <- as.numeric(format(as.Date(chem$deathDate), "%Y"))
