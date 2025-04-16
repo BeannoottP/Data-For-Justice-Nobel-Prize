@@ -3,7 +3,7 @@
 # Author: Ariana Mendible
 # Modified By: Chad M. Topaz on September 7, 2023
 # Description:
-# This script scrapes the Wikipedia page for the Nobel Committee for Physics.
+# This script scrapes the Wikipedia page for the Nobel Committee for Chemistry.
 # It uses the Swedish Wikipedia page due to better Wikidata linking. The script
 # extracts the names of former members, their years of membership, and Wikidata QIDs.
 # It also creates a plot to verify the number of seats in each year.
