@@ -103,3 +103,7 @@ committee_members_no_parties <- scrapeFirstTableFilterParties(baseUrl, lang = "e
 colnames(wikiTable)[1] <- "display_name"
 wikiTableWithQID <- merge(wikiTable, committee_members_no_parties, by='display_name')
 wikiTableWithQID <- wikiTableWithQID[-7]
+
+#save to file
+norwegianNobelCommittee <- wikiTableWithQID
+save(norwegianNobelCommittee, file = "norwegianNobel.RData")
