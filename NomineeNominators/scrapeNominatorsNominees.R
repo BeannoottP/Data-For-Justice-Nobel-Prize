@@ -220,4 +220,4 @@ detailedData <- pbmclapply(data$link, scrape_nomination, mc.cores = detectCores(
   bind_rows
 
 
-save(detailedData, file = "nomineeNominatorDetailedData")
+save(detailedData, file = "nomineeNominatorDetailedData.Rdata")
