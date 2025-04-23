@@ -57,6 +57,23 @@ df$qid[good.links] <- qid
 # Get rid of weird ones
 df <- df[!is.na(df$startyear),]
 
+# Preserve Gunnar Hedrén even though his startyear is NA
+df <- df[!is.na(df$startyear) | df$name == "Gunnar Hedrén", ]
+
+# Add manual entries
+additional_members <- data.frame(
+  name = c("Anna Wedell", "Ole Kiehn", "Patrik Ernfors", "Nils-Göran Larsson"),
+  startyear = c(2013, 2014, 2019, 2021),
+  endyear = c(2018, 2018, 2020, 2022),
+  stringsAsFactors = FALSE
+)
+
+# Add missing QIDs for now (can query them later or leave as NA)
+additional_members$qid <- c("Q47532470", "Q97584660", "Q107236915", "Q105518147")  # Or use NA if unknown
+
+# Bind to main dataframe
+df <- bind_rows(df, additional_members)
+
 # # Filter
 # df <- df %>%
 #   filter(startyear <= 2025)
