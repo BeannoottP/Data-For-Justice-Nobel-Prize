@@ -36,6 +36,11 @@ endyear <- txt %>% str_extract('(?<=–)\\d{4}') %>% as.numeric
 
 df <- data.frame(name, startyear, endyear) 
 
+# Manually fix Gunnar Hedrén's years
+df$name <- str_trim(df$name)  # Trim whitespace for matching
+df$startyear[df$name == "Gunnar Hedrén"] <- NA  # Start year unknown
+df$endyear[df$name == "Gunnar Hedrén"] <- 1931  # End year known
+
 # Convert good page links to QIDS -----------------------------------------
 PediaURLToQID <- function(PediaURL){
   qidout <- PediaURL %>% 
@@ -129,3 +134,4 @@ for (i in 1901:2025){
   seats <- c(seats, sum((med$startyear <= i) * (i <= med$endyear), na.rm = TRUE))
 }
 plot(year,seats)
+
