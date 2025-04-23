@@ -38,7 +38,7 @@ df <- data.frame(name, startyear, endyear)
 
 # Manually fix Gunnar Hedrén's years
 df$name <- str_trim(df$name)  # Trim whitespace for matching
-df$startyear[df$name == "Gunnar Hedrén"] <- NA  # Start year unknown
+df$startyear[df$name == "Gunnar Hedrén"] <- 1926  # Start year known
 df$endyear[df$name == "Gunnar Hedrén"] <- 1931  # End year known
 
 # Convert good page links to QIDS -----------------------------------------
@@ -103,7 +103,21 @@ returned <- raw_returned %>%
 
 med <- merge(df, returned, by = "qid", all.x = TRUE)
 
-med_orig <- med
+#filters out multiple birth/death dates
+parseReturned <- med %>%
+  group_by(qid) %>%
+  filter(
+    if (n() > 1) {
+      substr(birthDate, 6, 10) != "01-01" & substr(deathDate, 6, 10) != "01-01"
+    } else {
+      TRUE
+    }
+  ) %>%
+  ungroup()
+
+
+med_orig <- parseReturned
+med <- parseReturned
 
 # Convert deathDate to year
 med$deathYear <- as.numeric(format(as.Date(med$deathDate), "%Y"))
