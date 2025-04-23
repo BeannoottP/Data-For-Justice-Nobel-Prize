@@ -6,6 +6,7 @@ library(pbmcapply)
 
 # Set base URL for scraping nominees/nominators
 baseURL <- "https://www.nobelprize.org/nomination/archive/search.php?prize=0&startyear=1901"
+options(timeout = 240)
 
 # Extract the total number of records
 totalrecords <- baseURL %>%
@@ -55,7 +56,31 @@ data <- pbmclapply(offset , scrapePage, mc.cores = detectCores() - 1) %>%
 
 # Function to scrape nomination details
 scrape_nomination <- function(url) {
-  page <- read_html(url)
+
+  page <- tryCatch({
+    read_html(url)
+  }, error = function(e) {
+    message("Error reading HTML from URL: ", conditionMessage(e))
+    NULL  # Return NULL on error
+  })
+  
+  if (is.null(page)){
+    print(url)
+    
+    return (
+    data.frame(
+    Link = url, Category = character(), Year = numeric(), Number = numeric(),
+    Nominee_Name = character(), Nominee_Gender = character(),
+    Nominee_Birth = numeric(), Nominee_Death = numeric(),
+    Nominee_Profession = character(), Nominee_University = character(),
+    Nominee_City = character(), Nominee_State = character(), Nominee_Country = character(),
+    Nominee_Motivation = character(),
+    Nominator_Name = character(), Nominator_Gender = character(),
+    Nominator_Birth = numeric(), Nominator_Death = numeric(),
+    Nominator_Profession = character(), Nominator_University = character(),
+    Nominator_City = character(), Nominator_State = character(), Nominator_Country = character(),
+    stringsAsFactors = FALSE))
+  }
   
   # Extract text using the correct selector
   raw_text <- page %>%

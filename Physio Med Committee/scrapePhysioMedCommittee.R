@@ -17,12 +17,12 @@ url <- "https://sv.wikipedia.org/wiki/Karolinska_Institutets_Nobelkommitt%C3%A9"
 
 txt <- url %>% 
   read_html %>%
-  html_elements(css='ul:nth-child(36) li') %>% 
+  html_elements(css='ul:nth-child(34) li') %>% 
   html_text
 
 links <- url %>% 
   read_html %>% 
-  html_elements(css='ul:nth-child(36) a') %>% 
+  html_elements(css='ul:nth-child(34) a') %>% 
   html_attr('href') %>%
   paste0('https://sv.wikipedia.org',.)
 
@@ -30,8 +30,7 @@ good.links <- links %>% str_detect('/wiki/')
 bad.links <- links %>% str_detect('&redlink=1')
 
 # Pull names and years from text
-#name <- txt %>% str_extract('^.+(?=,)(?<!\\d)')
-name <- txt %>% str_extract('^[^,\\(]+')
+name <- txt %>% str_extract('^.+(?=,)(?<!\\d)')
 startyear <- txt %>% str_extract('\\d{4}(?=–)') %>% as.numeric
 endyear <- txt %>% str_extract('(?<=–)\\d{4}') %>% as.numeric
 
@@ -53,9 +52,9 @@ df$qid[good.links] <- qid
 # Get rid of weird ones
 df <- df[!is.na(df$startyear),]
 
-# Filter
-df <- df %>%
-  filter(startyear <= 2025)
+# # Filter
+# df <- df %>%
+#   filter(startyear <= 2025)
 
 items <- paste0('wd:',df$qid) %>% paste(collapse=' ')
 
@@ -70,21 +69,19 @@ query <- paste0(
     }'
 )
 
-
-#returned <- raw_returned %>%
-#  mutate(
-#    qid = as.character(qid), 
-#   birthDate = as.Date(birthDate, format="%Y-%m-%d"),
-#    deathDate = as.Date(deathDate, format="%Y-%m-%d")
-#  )
-
-returned <- query %>%
+raw_returned <- query %>%
   query_wikidata()
+
+returned <- raw_returned %>%
+  mutate(
+    qid = as.character(qid),
+    birthDate = as.Date(birthDate, format="%Y-%m-%d"),
+    deathDate = as.Date(deathDate, format="%Y-%m-%d")
+  )
 
 med <- merge(df, returned, by = "qid", all.x = TRUE)
 
 med_orig <- med
-
 
 # Convert deathDate to year
 med$deathYear <- as.numeric(format(as.Date(med$deathDate), "%Y"))
