@@ -61,6 +61,7 @@ df <- df[!is.na(df$startyear),]
 df <- df[!is.na(df$startyear) | df$name == "Gunnar Hedrén", ]
 
 # Add manual entries
+#remove anna or edit, maybe merge on names?
 additional_members <- data.frame(
   name = c("Anna Wedell", "Ole Kiehn", "Patrik Ernfors", "Nils-Göran Larsson"),
   startyear = c(2013, 2014, 2019, 2021),
@@ -69,7 +70,7 @@ additional_members <- data.frame(
 )
 
 # Add missing QIDs for now (can query them later or leave as NA)
-additional_members$qid <- c("Q47532470", "Q97584660", "Q107236915", "Q105518147")  # Or use NA if unknown
+additional_members$qid <- c("Q4990241", "Q42319021", "Q19975955", "Q5938385")  # Or use NA if unknown
 
 # Bind to main dataframe
 df <- bind_rows(df, additional_members)
