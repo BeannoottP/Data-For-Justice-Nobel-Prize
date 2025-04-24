@@ -75,6 +75,7 @@ additional_members$qid <- c("Q4990241", "Q42319021", "Q19975955", "Q5938385")  #
 # Bind to main dataframe
 df <- bind_rows(df, additional_members)
 
+df<-df[-53,]
 # # Filter
 # df <- df %>%
 #   filter(startyear <= 2025)
