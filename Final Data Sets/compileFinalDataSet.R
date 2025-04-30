@@ -39,6 +39,24 @@ finalSet <- rbind(finalSet, chem)
 
 
 #Karolinska Institute, med governing and selection
+KIprofs <- KIprofs %>%
+  rename(
+    name=title,
+    startYear = Min,
+    endYear = Max
+  )
+
+missing_cols <- setdiff(names(finalSet), names(KIprofs))
+KIprofs[missing_cols] <- NA
+KIprofs$role <- "governing"
+KIprofs$department <- "med"
+KIprofs <- KIprofs[, names(finalSet)]
+finalSet <- rbind(finalSet, KIprofs)
+
+KIprofs$role <- "selection"
+KIprofs$department <- "med"
+KIprofs <- KIprofs[, names(finalSet)]
+finalSet <- rbind(finalSet, KIprofs)
 
 
 #Lit committee
@@ -70,6 +88,24 @@ finalSet <- rbind(finalSet, med)
 
 
 #Norwegian Nobel Committee peace vetting and selection
+norwegianNobelCommittee <- norwegianNobelCommittee %>%
+  rename(
+    name=display_name,
+    startYear = Start,
+    endYear = End
+  )
+
+missing_cols <- setdiff(names(finalSet), names(norwegianNobelCommittee))
+norwegianNobelCommittee[missing_cols] <- NA
+norwegianNobelCommittee$role <- "vetting"
+norwegianNobelCommittee$department <- "peace"
+norwegianNobelCommittee <- norwegianNobelCommittee[, names(finalSet)]
+finalSet <- rbind(finalSet, norwegianNobelCommittee)
+
+norwegianNobelCommittee$role <- "selection"
+norwegianNobelCommittee$department <- "peace"
+norwegianNobelCommittee <- norwegianNobelCommittee[, names(finalSet)]
+finalSet <- rbind(finalSet, norwegianNobelCommittee)
 
 
 #Physics committee
@@ -114,10 +150,55 @@ prizesWithLaureates <- prizesWithLaureates[, names(finalSet)]
 finalSet <- rbind(finalSet, prizesWithLaureates)
 
 #RSAS, Phys governing and selection, Chem governing and selection
+RSAS <- RSAS %>%
+  rename(
+    startYear = startyear,
+    endYear = endyear,
+    birthPlace=birthcountry
+  )
 
+missing_cols <- setdiff(names(finalSet), names(RSAS))
+RSAS[missing_cols] <- NA
+RSAS$role <- "governing"
+RSAS$department <- "phys"
+RSAS <- RSAS[, names(finalSet)]
+finalSet <- rbind(finalSet, RSAS)
+
+RSAS$role <- "selection"
+RSAS$department <- "phys"
+RSAS <- RSAS[, names(finalSet)]
+finalSet <- rbind(finalSet, RSAS)
+
+RSAS$role <- "governing"
+RSAS$department <- "chem"
+RSAS <- RSAS[, names(finalSet)]
+finalSet <- rbind(finalSet, RSAS)
+
+RSAS$role <- "selection"
+RSAS$department <- "chem"
+RSAS <- RSAS[, names(finalSet)]
+finalSet <- rbind(finalSet, RSAS)
 
 #Swedish Academy, Literature Governing and Selection
+SA <- SA %>% 
+  rename(
+    endYear = endyear,
+    startYear = startyear,
+    birthPlace = birthcountry,
+    name = names
+  )
 
+missing_cols <- setdiff(names(finalSet), names(SA))
+SA[missing_cols] <- NA
+SA$role <- "governing"
+SA$department <- "lit"
+SA <- SA[, names(finalSet)]
+finalSet <- rbind(finalSet, SA)
+
+SA$role <- "selection"
+SA$department <- "lit"
+SA <- SA[, names(finalSet)]
+finalSet <- rbind(finalSet, SA)
 
 #Storting Peace Governing 
 Storting <- Storting %>% 
