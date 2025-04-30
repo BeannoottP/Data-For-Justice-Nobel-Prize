@@ -102,7 +102,7 @@ current$qid <- pbmclapply(current$link, PediaURLToQID, mc.cores = 10) %>% unlist
 # ------------------------------------------------------------------------
 
 lit <- bind_rows(lit, current)
-
+litPreserve <- lit
 
 # Query Additional Data from Wikidata -------------------------------------
 items <- paste0('wd:', lit$qid[!is.na(lit$qid)]) %>% paste(collapse = ' ')
@@ -121,8 +121,23 @@ query <- paste0(
 
 returned <- query %>%
   query_wikidata()
-
+length(unique(returned$qid))
 lit <- merge(lit, returned, by = "qid", all.x = TRUE)
+length(unique(lit$qid))
+lit <- lit %>%
+  group_by(qid) %>%
+  filter(
+    if (n() > 1) {
+      (substr(birthDate, 6, 10) != "01-01" & substr(deathDate, 6, 10) != "01-01")
+    } else {
+      TRUE
+    }
+  ) %>%
+  ungroup()
+length(unique(lit$qid))
+
+lit <- lit[!duplicated(lit$qid), ]
+length(unique(lit$qid))
 
 # Convert Dates to Numeric Year ------------------------------------------
 lit$deathYear <- as.numeric(format(as.Date(lit$deathDate), "%Y"))
@@ -161,6 +176,8 @@ if (length(lower_bounds) > 0 & length(upper_bounds) > 0) {
   
   lit$endyear[is.na(lit$endyear)][valid_indices] <- round(result$optim$bestmem)
 }
+
+litFindExtras <- merge(litPreserve, lit, by = "name")
 
 # Save Processed Data ----------------------------------------------------
 save(lit, file = 'Nobel_Lit_Committee.Rdata')
