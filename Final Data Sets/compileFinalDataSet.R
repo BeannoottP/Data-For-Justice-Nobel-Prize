@@ -18,6 +18,7 @@ finalSet <- data.frame(
     nationality = character(),
     gender = character(),
     uniqueId = list(), #every person who is in multiple groups, ie a nobel winner is also a nominee and could also be a vetting body member, has a seperate entry + id. This ID is same among all entries of same person
+    nomineeId = integer(), #only for nominators, aligns nominator with nominee
     stringsAsFactors = FALSE
   )
 
@@ -36,6 +37,18 @@ chem <- chem[, names(finalSet)]
 finalSet <- rbind(finalSet, chem)
 
 #Nominators/Nominees
+
+detailedData$Category <- gsub("Physics", "phys", detailedData$Category)
+detailedData$Category <- gsub("Chemistry", "chem", detailedData$Category)
+detailedData$Category <- gsub("Literature", "lit", detailedData$Category)
+detailedData$Category <- gsub("Peace", "peace", detailedData$Category)
+detailedData$Category <- gsub("Physiology or Medicine", "med", detailedData$Category)
+
+nominees <- detailedData
+nominators <- detailedData
+nominees$id <- 1:nrow(nominees)
+nominators$nomineeId <- 1:nrow(nominees)
+
 
 
 #Karolinska Institute, med governing and selection
@@ -126,7 +139,7 @@ finalSet <- rbind(finalSet, phys)
 
 #Nobel prizes, notes, removed all NON person entries, treating this as human prizes only
 prizesWithLaureates <- prizesWithLaureates[prizesWithLaureates$category$en != "Economic Sciences", ]
-prizesWithLaureates <- prizesWithLaureates[!is.na(prizesWithLaureates$gender), ]
+prizesWithLaureates <- prizesWithLaureates[!is.na(prizesWithLaureates$gender), ] #removes organizations
 
 prizesWithLaureates$category$en <- gsub("Physics", "phys", prizesWithLaureates$category$en)
 prizesWithLaureates$category$en <- gsub("Chemistry", "chem", prizesWithLaureates$category$en)
