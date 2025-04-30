@@ -51,6 +51,8 @@ nominators$nomineeId <- 1:nrow(nominees)
 
 
 
+
+
 #Karolinska Institute, med governing and selection
 KIprofs <- KIprofs %>%
   rename(
