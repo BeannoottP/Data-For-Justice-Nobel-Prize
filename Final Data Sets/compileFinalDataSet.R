@@ -9,7 +9,7 @@ finalSet <- data.frame(
     id = integer(),
     qid = character(),
     name = character(),
-    role = character(), #nominee, nominator, governing, vetting, laureate
+    role = character(), #nominee, nominator, governing, selection, vetting, laureate
     department = character(), #phys, chem, lit, peace, med
     startYear = integer(),
     endYear = integer(),
@@ -17,7 +17,7 @@ finalSet <- data.frame(
     birthPlace = character(),
     nationality = character(),
     gender = character(),
-    additionalIds = list(),
+    uniqueId = list(), #every person who is in multiple groups, ie a nobel winner is also a nominee and could also be a vetting body member, has a seperate entry + id. This ID is same among all entries of same person
     stringsAsFactors = FALSE
   )
 
@@ -38,7 +38,7 @@ finalSet <- rbind(finalSet, chem)
 #Nominators/Nominees
 
 
-#Karolinska Institute
+#Karolinska Institute, med governing and selection
 
 
 #Lit committee
@@ -73,10 +73,45 @@ finalSet <- rbind(finalSet, med)
 
 
 #Physics committee
+phys <- phys %>% 
+  rename(
+    endYear = endyear,
+    startYear = startyear,
+    birthPlace = birthcountry,
+    name = names
+  )
 
+missing_cols <- setdiff(names(finalSet), names(phys))
+phys[missing_cols] <- NA
+phys$role <- "vetting"
+phys$department <- "phys"
+phys <- phys[, names(finalSet)]
+finalSet <- rbind(finalSet, phys)
 
-#Nobel prizes
+#Nobel prizes, notes, removed all NON person entries, treating this as human prizes only
+prizesWithLaureates <- prizesWithLaureates[prizesWithLaureates$category$en != "Economic Sciences", ]
+prizesWithLaureates <- prizesWithLaureates[!is.na(prizesWithLaureates$gender), ]
 
+prizesWithLaureates$category$en <- gsub("Physics", "phys", prizesWithLaureates$category$en)
+prizesWithLaureates$category$en <- gsub("Chemistry", "chem", prizesWithLaureates$category$en)
+prizesWithLaureates$category$en <- gsub("Literature", "lit", prizesWithLaureates$category$en)
+prizesWithLaureates$category$en <- gsub("Peace", "peace", prizesWithLaureates$category$en)
+prizesWithLaureates$category$en <- gsub("Physiology or Medicine", "med", prizesWithLaureates$category$en)
+
+prizesWithLaureates$birthYear <- substr(prizesWithLaureates$birth$date, 1, 4)
+
+prizesWithLaureates$department <- prizesWithLaureates$category$en
+prizesWithLaureates$startYear <- prizesWithLaureates$awardYear
+prizesWithLaureates$endYear <- prizesWithLaureates$startYear 
+prizesWithLaureates$qid <- prizesWithLaureates$wikidata$id
+prizesWithLaureates$name <- prizesWithLaureates$knownName$en
+prizesWithLaureates$role <- "laureate"
+prizesWithLaureates$birthPlace <- prizesWithLaureates$birth$place$country$en
+
+missing_cols <- setdiff(names(finalSet), names(prizesWithLaureates))
+prizesWithLaureates[missing_cols] <- NA
+prizesWithLaureates <- prizesWithLaureates[, names(finalSet)]
+finalSet <- rbind(finalSet, prizesWithLaureates)
 
 #RSAS
 
