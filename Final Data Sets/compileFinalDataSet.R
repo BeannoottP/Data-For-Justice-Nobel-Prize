@@ -69,7 +69,7 @@ med <- med[, names(finalSet)]
 finalSet <- rbind(finalSet, med)
 
 
-#Norwegian Nobel Committee
+#Norwegian Nobel Committee peace vetting and selection
 
 
 #Physics committee
@@ -113,15 +113,29 @@ prizesWithLaureates[missing_cols] <- NA
 prizesWithLaureates <- prizesWithLaureates[, names(finalSet)]
 finalSet <- rbind(finalSet, prizesWithLaureates)
 
-#RSAS
+#RSAS, Phys governing and selection, Chem governing and selection
 
 
-#Swedish Academy
+#Swedish Academy, Literature Governing and Selection
 
 
-#Storting
+#Storting Peace Governing 
+Storting <- Storting %>% 
+  rename(
+    endYear = endyear,
+    startYear = startyear,
+    birthPlace = birthcountry,
+  )
 
+missing_cols <- setdiff(names(finalSet), names(Storting))
+Storting[missing_cols] <- NA
+Storting$role <- "governing"
+Storting$department <- "peace"
+Storting <- Storting[, names(finalSet)]
+finalSet <- rbind(finalSet, Storting)
 
 #apply ID's find matching people
 
+
+#query wikidata
 
