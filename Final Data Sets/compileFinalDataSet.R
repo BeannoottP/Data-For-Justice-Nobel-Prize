@@ -185,7 +185,6 @@ SA <- SA %>%
     endYear = endyear,
     startYear = startyear,
     birthPlace = birthcountry,
-    name = names
   )
 
 missing_cols <- setdiff(names(finalSet), names(SA))
