@@ -217,5 +217,73 @@ finalSet <- rbind(finalSet, Storting)
 #apply ID's find matching people
 
 
-#query wikidata
+#query wikidata (THIS IS WRONG)
+# Load necessary libraries
+library(WikidataR)
+library(dplyr)
+library(pbmcapply)
 
+# Function to query Wikidata for missing information (birthplace, nationality, gender)
+query_wikidata_for_missing_info <- function(qid_list) {
+  # Function to handle each query (with retry logic)
+  query_function <- function(qid) {
+    query <- paste0(
+      'SELECT DISTINCT ?qid ?genderLabel ?birthCountryLabel ?nationalityLabel
+      WHERE {
+        VALUES ?qid { wd:', qid, ' }
+        OPTIONAL { ?qid wdt:P21 ?gender. }
+        OPTIONAL { ?qid wdt:P19/wdt:P17 ?birthCountry. }
+        OPTIONAL { ?qid wdt:P27 ?nationality. }
+        SERVICE wikibase:label { 
+          bd:serviceParam wikibase:language "en".
+          ?gender rdfs:label ?genderLabel.
+          ?birthCountry rdfs:label ?birthCountryLabel.
+          ?nationality rdfs:label ?nationalityLabel.
+        }
+      }'
+    )
+    
+    # Execute the query
+    result <- tryCatch({
+      query_wikidata(query, format = "smart") %>%
+        as.data.frame()
+    }, error = function(e) {
+      cat("Error:", conditionMessage(e), "\n")
+      return(NULL)
+    })
+    
+    # If the query is successful, return the result, else return NULL
+    return(result)
+  }
+  
+  # Run the query for each QID in parallel
+  results <- pbmclapply(qid_list, query_function, mc.cores = 4)
+  
+  # Combine the results into a single data frame
+  results_df <- bind_rows(results)
+  
+  # Return the results
+  return(results_df)
+}
+
+# Identify rows in finalSet where birthplace, nationality, or gender are NA
+missing_info_qids <- finalSet %>%
+  filter(is.na(birthPlace) | is.na(nationality) | is.na(gender)) %>%
+  pull(qid)
+
+# Query Wikidata for the missing information
+wikidata_info <- query_wikidata_for_missing_info(missing_info_qids)
+
+# Merge the Wikidata results with finalSet (we use a left join to keep all rows from finalSet)
+finalSet_updated <- finalSet %>%
+  left_join(wikidata_info, by = "qid") %>%
+  mutate(
+    # Update the missing values with data from Wikidata
+    gender = coalesce(genderLabel, gender),
+    birthPlace = coalesce(birthCountryLabel, birthPlace),
+    nationality = coalesce(nationalityLabel, nationality)
+  ) %>%
+  select(-genderLabel, -birthCountryLabel, -nationalityLabel)  # Remove temporary columns
+
+# Print the updated finalSet
+print(finalSet_updated)
