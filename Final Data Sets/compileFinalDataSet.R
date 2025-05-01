@@ -214,6 +214,65 @@ Storting$department <- "peace"
 Storting <- Storting[, names(finalSet)]
 finalSet <- rbind(finalSet, Storting)
 
+
+library(WikidataQueryServiceR)
+library(tidyverse)
+library(pbmcapply)
+
+# Function to query Wikidata for gender, nationality, and birthplace using QID
+query_wikidata_details <- function(qid) {
+  sparql <- paste0('
+    SELECT ?qid ?genderLabel ?birthCountryLabel ?nationalityLabel WHERE {
+      BIND(wd:', qid, ' AS ?qid)
+      OPTIONAL { ?qid wdt:P21 ?gender. }
+      OPTIONAL { ?qid wdt:P19 ?birthPlace. ?birthPlace wdt:P17 ?birthCountry. }
+      OPTIONAL { ?qid wdt:P27 ?nationality. }
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "en".
+        ?gender rdfs:label ?genderLabel.
+        ?birthCountry rdfs:label ?birthCountryLabel.
+        ?nationality rdfs:label ?nationalityLabel.
+      }
+    }
+  ')
+  
+  tryCatch({
+    result <- query_wikidata(sparql)
+    result$qid <- qid
+    result
+  }, error = function(e) {
+    tibble(qid = qid, genderLabel = NA, birthCountryLabel = NA, nationalityLabel = NA)
+  })
+}
+
+# Filter QIDs with missing info
+missing_info_qids <- finalSet %>%
+  filter(is.na(gender) | is.na(nationality) | is.na(birthPlace)) %>%
+  distinct(qid) %>%
+  pull(qid)
+
+# Run query in parallel (change mc.cores if needed)
+wikidata_fills <- pbmclapply(missing_info_qids, query_wikidata_details, mc.cores = 4) %>%
+  bind_rows() %>%
+  group_by(qid) %>%
+  summarise(
+    gender = first(genderLabel[!is.na(genderLabel)]),
+    birthPlace = first(birthCountryLabel[!is.na(birthCountryLabel)]),
+    nationality = paste(unique(na.omit(nationalityLabel)), collapse = "; ")
+  )
+
+# Join back to original dataset
+finalSet <- finalSet %>%
+  left_join(wikidata_fills, by = "qid") %>%
+  mutate(
+    gender = coalesce(gender.x, gender.y),
+    birthPlace = coalesce(birthPlace.x, birthPlace.y),
+    nationality = coalesce(nationality.x, nationality.y)
+  ) %>%
+  select(-gender.x, -gender.y, -birthPlace.x, -birthPlace.y, -nationality.x, -nationality.y)
+
+
+
+
 #apply ID's find matching people
 
 
