@@ -2,6 +2,10 @@
 library(multinet)
 library(dplyr)
 
+#0. load data
+load("Final Data Sets/nomineeNominatorDetailedData.Rdata")
+data <- detailedData
+
 # 1. Create empty multilayer network and add layers
 net <- ml_empty()
 add_layers_ml(net, c("nominator", "nominee"), directed = TRUE)
@@ -146,7 +150,7 @@ plot(
   g,
   vertex.label = V(g)$name,
   vertex.color = ifelse(V(g)$name %in% edges_sub$from, "skyblue", "orange"),
-  vertex.size = 25,
+  vertex.size = 1,
   vertex.label.cex = 0.8,
   vertex.label.color = "black",
   edge.arrow.size = 0.4,
