@@ -4,7 +4,22 @@ library(dplyr)
 
 #0. load data
 load("Final Data Sets/nomineeNominatorDetailedData.Rdata")
+load("Final Data Sets/prizesAwarded.RData")
 data <- detailedData
+
+
+
+#0.5 add laureatte data
+laureate_names <- prizesWithLaureates$knownName$en
+clean <- function(x) gsub("[[:blank:]]", "",trimws(tolower(x)))
+
+
+data$nomineeLaureatte <- clean(data$Nominee_Name) %in% clean(laureate_names)
+data$nominatorLaureatte <- clean(data$Nominator_Name) %in% clean(laureate_names)
+
+
+
+
 
 # 1. Create empty multilayer network and add layers
 net <- ml_empty()
@@ -65,7 +80,7 @@ combined_attr <- bind_rows(
   )
 
 # First declare the attributes before setting values
-add_attributes_ml(net, attributes = c("gender", "birth", "death", "country"), target = "actor", type = "string")
+add_attributes_ml(net, attributes = c("gender", "birth", "death", "country", "laureatte"), target = "actor", type = "string")
 
 # Now set the values using named arguments
 for (attr in c("gender", "birth", "death", "country")) {
@@ -150,9 +165,9 @@ plot(
   g,
   vertex.label = V(g)$name,
   vertex.color = ifelse(V(g)$name %in% edges_sub$from, "skyblue", "orange"),
-  vertex.size = 1,
+  vertex.size = 4,
   vertex.label.cex = 0.8,
   vertex.label.color = "black",
-  edge.arrow.size = 0.4,
+  edge.arrow.size = 0.15,
   layout = layout_with_fr
 )
