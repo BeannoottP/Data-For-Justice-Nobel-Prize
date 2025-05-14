@@ -10,15 +10,37 @@ data <- detailedData
 
 
 #0.5 add laureatte data
-laureate_names <- prizesWithLaureates$knownName$en
+laureate_names <- data.frame(
+  names = rep(NA, 1012),
+  year = rep(NA, 1012),
+  stringsAsFactors = FALSE
+)
+laureate_names$names <- prizesWithLaureates$knownName$en
+laureate_names$year <- prizesWithLaureates$awardYear
 clean <- function(x) gsub("[[:blank:]]", "",trimws(tolower(x)))
 
+nominees_clean <- clean(data$Nominee_Name)
+nominators_clean <- clean(data$Nominator_Name)
+laureates_clean <- clean(laureate_names$names)
 
-data$nomineeLaureatte <- clean(data$Nominee_Name) %in% clean(laureate_names)
-data$nominatorLaureatte <- clean(data$Nominator_Name) %in% clean(laureate_names)
+# Get index of matches
+data$nomineeLaureatteYear <- match(nominees_clean, laureates_clean)
+data$nominatorLaureatteYear <- match(nominators_clean, laureates_clean)
 
+#adds year
+data$nomineeLaureatteYear <- laureate_names$year[data$nomineeLaureatteYear]
+data$nominatorLaureatteYear <- laureate_names$year[data$nominatorLaureatteYear]
 
+#did the nominee win that year, has the nominator previouslty won
+data$nomineeWon <- !(is.na(data$nomineeLaureatteYear)) & (data$nomineeLaureatteYear == data$Year) 
+data$nominatorLaureatteAlready <- !(is.na(data$nominatorLaureatteYear)) & (data$nominatorLaureatteYear < data$Year) 
 
+#various math for numbers
+sum(data$nomineeWon & data$nominatorLaureatteAlready)
+sum(data$nomineeWon)
+
+sum(data$nomineeWon & data$nominatorLaureatteAlready)/sum(data$nominatorLaureatteAlready) #win percentage of people nominated by laureates
+(sum(data$nomineeWon) - sum(data$nomineeWon & data$nominatorLaureatteAlready))/sum(!data$nominatorLaureatteAlready) #win percentage of people not nominated by laureates
 
 
 # 1. Create empty multilayer network and add layers
