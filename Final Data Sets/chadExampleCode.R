@@ -42,6 +42,21 @@ sum(data$nomineeWon)
 sum(data$nomineeWon & data$nominatorLaureatteAlready)/sum(data$nominatorLaureatteAlready) #win percentage of people nominated by laureates
 (sum(data$nomineeWon) - sum(data$nomineeWon & data$nominatorLaureatteAlready))/sum(!data$nominatorLaureatteAlready) #win percentage of people not nominated by laureates
 
+graph_df <- data.frame (category = c("Nominated by Past Laureates","Not Nominated By Past Laureates"), winPercent = c(sum(data$nomineeWon & data$nominatorLaureatteAlready)/sum(data$nominatorLaureatteAlready), (sum(data$nomineeWon) - sum(data$nomineeWon & data$nominatorLaureatteAlready))/sum(!data$nominatorLaureatteAlready)),
+                        lossPercent = c(0, 0))
+graph_df$lossPercent <- (1 - graph_df$winPercent)
+
+barplot(
+  height = graph_df$winPercent,
+  names.arg = graph_df$category,  # or another label vector
+  col = "skyblue",
+  main = "Chance of Winning if Nominated By Past Laureate vs Non Laureate",
+  ylab = "Win Percentage",
+  ylim = c(0, max(graph_df$winPercent) * 1.1),
+  cex.names = 0.6,     # smaller axis labels
+  cex.axis = 0.8,      # smaller tick labels
+  cex.main = 0.9      # smaller title
+)
 
 # 1. Create empty multilayer network and add layers
 net <- ml_empty()
